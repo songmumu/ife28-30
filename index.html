@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>ife28-30</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    .wrapper {
+      width: 300px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    #email-input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px 0 5px 10px;
+      outline: none;
+      border: 1px solid #aaa;
+      border-bottom: none;
+    }
+
+    #email-sug-wrapper {
+      position: absolute;
+      top: 26px;
+      left: 0;
+      box-sizing: border-box;
+      width: 100%;
+      padding-left: 0;
+      list-style: none;
+      margin: 0;
+      border: 1px solid #aaa;
+      border-top: none;
+      background: #fff;
+    }
+    
+    #email-sug-wrapper>li {
+      color: #999;
+      padding: 5px 0 5px 10px;
+    }
+    #email-sug-wrapper>li:hover {
+      background: #bcdfea;
+    }
+    .active-li {
+      background: #ffc4ce;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <input id="email-input" type="text">
+    <ul id="email-sug-wrapper" class="email-sug"></ul>
+  </div>
+  <hr/>
+  <script>
+    // 获取DOM元素
+    var emailInput = document.getElementById('email-input');
+    var emailSugWrapper = document.getElementById('email-sug-wrapper');
+    // 全局变量
+    // 输入框的有效字符
+    var inputVal = '';
+
+    // 邮箱后缀List参考
+    var postfixList = ['163.com', 'gmail.com', '126.com', 'qq.com', '263.net'];
+
+    // 页面一加载，光标聚焦到输入框
+    window.onload = function() {
+      emailInput.focus();
+    }
+
+    // 禁止用户输入空格
+    emailInput.onkeydown = function(event) {
+      var e = event || window.event;
+      if (e.keyCode === 32) {
+        return false;
+      }
+    }
+
+    // 根据用户输入生成list
+    emailInput.onkeyup = function() {
+      inputVal = HTMLEncode(this.value);
+      // @在输入字符串中的索引
+      var index = inputVal.indexOf('@');
+      if ( index > -1) {
+        // 获取输入字符串中@前的字符
+        usernameVal = inputVal.substring(0, index);
+        // 获取输入字符串中@后的字符
+        emialName = inputVal.substring(index + 1);
+  
+        screenListTip(usernameVal,emialName);
+      } else {
+        if(this.value.length > 0) {
+          setListTip(inputVal);
+        } else {
+          emailSugWrapper.innerHTML = '';
+        }
+      }
+      
+    }
+
+    // 添加上下方向键选中的样式
+    function addActiveStyle(index) {
+      emailSugWrapper.childNodes.forEach(element => {
+          element.className = '';
+        });
+        emailSugWrapper.children[index].className = 'active-li';
+    }
+
+    // 用户enter键选择的选项序号
+    var index = 0;
+
+    // 提示框出现后的上、下、enter键事件
+    document.onkeyup = function(event){    
+      var e = event || window.event;
+      // ESC全选
+      if (e.keyCode === 27) {
+        emailInput.select();
+      }
+      // 提示框出现
+      if (emailSugWrapper.childElementCount > 0) {
+        emailSugWrapper.children[0].className = 'active-li';
+        // 上下方向键事件
+        if(e.keyCode === 38){
+          if (index === 0) {
+            index = emailSugWrapper.childElementCount -1
+          } else {
+            index--;
+          }
+          addActiveStyle(index);
+        } else if (e.keyCode === 40) {
+          if (index === emailSugWrapper.childElementCount -1) {
+            index = 0;
+          } else {
+            index++;
+          }
+          addActiveStyle(index);
+        }         
+        // enter选中
+        if (e.keyCode === 13) {
+          emailInput.value = HTMLDecode(emailSugWrapper.children[index].innerText);
+          emailSugWrapper.innerHTML = '';
+          index = 0;
+        }
+      }
+    }
+
+    // 根据用户输入@前的值，生成List 的li标签
+    function setListTip(value) {
+      emailSugWrapper.innerHTML = '';
+      for (let i = 0; i < postfixList.length; i++) {
+        emailSugWrapper.innerHTML += '<li>' + value + '@' + postfixList[i]+ '</li>'
+      }
+    }
+
+    // 根据用户输入@后的值，生成List 的li标签
+    function screenListTip(value, backValue) {
+      emailSugWrapper.innerHTML = '';
+      // 生成的新数组
+      newPostfixList = [];
+      postfixList.forEach((list) => {
+        let index  = list.indexOf(backValue);
+        if (index > -1 ) {
+          newPostfixList.push(list);
+        }
+      })
+
+      for (let i = 0; i < newPostfixList.length; i++) {
+        emailSugWrapper.innerHTML += '<li>' + value + '@' + newPostfixList[i]+ '</li>'
+      }
+    }
+
+    // 点击选项填入输入框
+    emailSugWrapper.onclick = function(event){
+      var e = event || window.event;
+      emailInput.value = HTMLDecode(e.target.innerText);
+      emailInput.focus();
+      emailSugWrapper.innerHTML = '';
+    }
+
+    // html转码
+    function HTMLEncode(html) {
+      var container = document.createElement('div');
+      container.textContent === undefined ? (container.innerText = html) : (container.textContent = html);
+      var output = container.innerHTML;
+      container = null;
+      return output;
+    }
+
+    // html解码
+    function HTMLDecode(text) {
+      var container = document.createElement('div');
+      container.innerHTML = text;
+      var output = container.innerText || container.textContent;
+      container = null;
+      return output;
+    }
+  </script>
+</body>
+
+</html>
